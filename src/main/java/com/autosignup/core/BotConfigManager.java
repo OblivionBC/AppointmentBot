@@ -1,4 +1,4 @@
-package com.autosignup.bots;
+package com.autosignup.core;
 
 public class BotConfigManager {
 }
