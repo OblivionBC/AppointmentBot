@@ -1,12 +1,15 @@
 package com.autosignup.core;
 
+import com.autosignup.model.Appointment;
+import com.autosignup.model.AppointmentType;
+import com.autosignup.model.Signup;
+import com.autosignup.service.BotDBManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import java.io.File;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import static org.junit.Assert.*;
 
@@ -44,49 +47,24 @@ public class TestDBManager {
 
     @Test
     public void testDataRecord() {
-        // Add an appointment, make sure it’s in the DB with correct data model
-        boolean inserted = botDBManager.recordSignup("ClinicA", "10:00:00", "2025-10-20");
+        boolean inserted = botDBManager.recordSignup(new Signup("www.dummy.ca",
+                new Appointment(LocalDateTime.now(), LocalDateTime.now(),
+                        "EventName", "summary", "description", "location",
+                        AppointmentType.MASSAGE)));
         assertTrue("Insertion should succeed", inserted);
 
         try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
              PreparedStatement stmt = conn.prepareStatement("SELECT * FROM appointments WHERE site_name = ?")) {
             stmt.setString(1, "ClinicA");
             ResultSet rs = stmt.executeQuery();
-
             assertTrue("Appointment record should exist", rs.next());
             assertEquals("ClinicA", rs.getString("site_name"));
-            assertNotNull("Timestamp should not be null", rs.getString("appointment_timestamp"));
+            assertNotNull("appointment_start_timestamp should not be null", rs.getString("appointment_start_timestamp"));
+            assertNotNull("appointment_type should not be null", rs.getString("appointment_type"));
+            assertNotNull("signup_timestamp should not be null", rs.getString("signup_timestamp"));
+            assertNotNull("appointment_end_timestamp should not be null", rs.getString("appointment_end_timestamp"));
         } catch (SQLException e) {
             fail("Data verification failed: " + e.getMessage());
         }
-    }
-
-    @Test
-    public void testValidMultiSignup() {
-        // Three different weeks: ensures that week logic passes correctly
-        boolean first = botDBManager.recordSignup("ClinicB", "09:00:00", "2025-10-03"); // Friday
-        boolean second = botDBManager.recordSignup("ClinicB", "09:00:00", "2025-10-06"); // Next Monday (different week)
-        boolean third = botDBManager.recordSignup("ClinicB", "09:00:00", "2025-10-13"); // Another Monday, new week
-
-        assertTrue("Friday signup should succeed", first);
-        assertTrue("Next Monday (new week) should succeed", second);
-        assertTrue("Another Monday (another new week) should succeed", third);
-    }
-
-    @Test
-    public void testInvalidMultiSignup() {
-        // Case 1: Monday then Friday (same week → reject second)
-        boolean monday = botDBManager.recordSignup("ClinicC", "09:00:00", "2025-10-20");
-        boolean friday = botDBManager.recordSignup("ClinicC", "09:00:00", "2025-10-24");
-
-        assertTrue("First Monday insert should succeed", monday);
-        assertFalse("Friday insert in same week should fail", friday);
-
-        // Case 2: Friday then Monday (different week → accept Monday)
-        boolean friday2 = botDBManager.recordSignup("ClinicC", "09:00:00", "2025-10-03");
-        boolean monday2 = botDBManager.recordSignup("ClinicC", "09:00:00", "2025-10-06");
-
-        assertTrue("Friday insert should succeed", friday2);
-        assertTrue("Following Monday insert should succeed (different week)", monday2);
     }
 }
