@@ -26,10 +26,6 @@ public class BotDBManager {
     @Getter
     private Connection connection;
 
-    public BotDBManager() {
-        initializeDatabase();
-    }
-
     @PostConstruct
     private void initializeDatabase() {
         try {

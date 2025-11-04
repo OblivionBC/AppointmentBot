@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableRetry
 public class AppointmentBotApp {
 
-    //TODO: Test and Run
     public static void main(String[] args) {
         SpringApplication.run(AppointmentBotApp.class, args);
     }

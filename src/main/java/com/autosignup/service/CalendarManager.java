@@ -16,6 +16,7 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.EventReminder;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class EmailCalendarManager {
+public class CalendarManager {
     @Value("${credentials.path}")
     private static final String CREDENTIALS_FILE_PATH = "src/main/resources/credentials.json";
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
@@ -36,17 +37,18 @@ public class EmailCalendarManager {
     private static final String CALENDAR_ID = "primary";
     private final Calendar service;
 
-    @Value("${emails.attendee}")
+    @Value("${calendar.attendee}")
+    @Getter
     private String attendeeEmail;
     @Value("${calendar.timezone}")
+    @Getter
     private String timezone;
 
-    public EmailCalendarManager() {
+    public CalendarManager() {
         service = getCalendarService();
     }
 
-    //TODO: Add SMTP Email Sending
-    public String createCalendarEvent(Appointment appointment) {
+    public Event createCalendarEvent(Appointment appointment) {
         EventDateTime start = new EventDateTime()
                 .setDateTime(new com.google.api.client.util.DateTime(String.valueOf(appointment.start())))
                 .setTimeZone(timezone);
@@ -75,7 +77,7 @@ public class EmailCalendarManager {
             Event created = service.events().insert(CALENDAR_ID, event)
                     .setSendUpdates("all")
                     .execute();
-            return created.getId();
+            return created;
         } catch (IOException e) {
             // Print Error message when log4j is configured
             throw new RuntimeException(e);

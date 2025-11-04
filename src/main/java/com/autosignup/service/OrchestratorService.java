@@ -12,15 +12,16 @@ import java.util.List;
 public class OrchestratorService {
 
     private final List<WebsiteNavigator> navigators;
-    private final EmailCalendarManager emailCalendarManager;
+    private final CalendarManager calendarManager;
+    private final EmailService emailService;
 
     //TODO: Test that this works
     public void runAllNavigators() {
         for (WebsiteNavigator nav : navigators) {
             List<Appointment> appointments = nav.runAll();
             appointments.forEach(app -> {
-                emailCalendarManager.createCalendarEvent(app);
-                emailCalendarManager.sendEmailNotification(app);
+                calendarManager.createCalendarEvent(app);
+                calendarManager.sendEmailNotification(app);
             });
         }
     }
