@@ -28,7 +28,7 @@ public class TypeTimeBasedProtocol extends SignupProtocol {
             String query = """
                     SELECT COUNT(*) AS cnt FROM appointments
                     WHERE type = ?
-                      AND start BETWEEN ? AND ?
+                      AND start BETWEEN datetime(?) AND datetime(?)
                     """;
 
             ResultSet rs = dbManager.runQuery(query, List.of(type.name(), windowStart, windowEnd));

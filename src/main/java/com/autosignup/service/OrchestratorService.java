@@ -1,7 +1,7 @@
 package com.autosignup.service;
 
 import com.autosignup.model.Appointment;
-import com.autosignup.website.WebsiteNavigator;
+import com.autosignup.navigators.WebsiteNavigator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
