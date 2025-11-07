@@ -1,7 +1,7 @@
 package com.autosignup.model.protocol;
 
-import com.autosignup.model.Appointment;
 import com.autosignup.model.AppointmentType;
+import com.autosignup.model.SlotInfo;
 import com.autosignup.service.BotDBManager;
 
 import java.sql.ResultSet;
@@ -18,10 +18,10 @@ public class TypeTimeBasedProtocol extends SignupProtocol {
     }
 
     @Override
-    public boolean checkValidity(Appointment appointment) {
+    public boolean checkValidity(SlotInfo slot) {
         try {
-            AppointmentType type = appointment.appointmentType();
-            LocalDateTime start = appointment.start();
+            AppointmentType type = slot.appointmentType();
+            LocalDateTime start = slot.start();
             LocalDateTime windowStart = start.minusHours(windowHours);
             LocalDateTime windowEnd = start.plusHours(windowHours);
 
@@ -33,12 +33,12 @@ public class TypeTimeBasedProtocol extends SignupProtocol {
 
             ResultSet rs = dbManager.runQuery(query, List.of(type.name(), windowStart, windowEnd));
             if (rs.next() && rs.getInt("cnt") > 0) {
-                System.out.println("Skipping appointment {} due to existing in window." + appointment.start());
+                System.out.println("Skipping slot due to existing appointment in window: " + slot.start());
                 return false;
             }
             return true;
         } catch (Exception e) {
-            System.out.println("Error during validity check " + e.getMessage());
+            System.out.println("Error during validity check: " + e.getMessage());
             return false;
         }
     }

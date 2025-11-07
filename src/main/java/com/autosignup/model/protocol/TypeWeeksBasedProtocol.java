@@ -1,6 +1,6 @@
 package com.autosignup.model.protocol;
 
-import com.autosignup.model.Appointment;
+import com.autosignup.model.SlotInfo;
 import com.autosignup.service.BotDBManager;
 
 import java.sql.ResultSet;
@@ -19,10 +19,10 @@ public class TypeWeeksBasedProtocol extends SignupProtocol {
     }
 
     @Override
-    public boolean checkValidity(Appointment appointment) {
+    public boolean checkValidity(SlotInfo slot) {
         try{
             // Check 1: Verify no appointments exist in the week window
-            LocalDate startOfWeek = appointment.start().toLocalDate()
+            LocalDate startOfWeek = slot.start().toLocalDate()
                     .with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
             LocalDate endOfWeek = startOfWeek.plusDays(6L * windowWeeks);
 
@@ -37,16 +37,16 @@ public class TypeWeeksBasedProtocol extends SignupProtocol {
                   AND appointment_start_timestamp BETWEEN datetime(?) AND datetime(?)
             """;
 
-            ResultSet rs = dbManager.runQuery(weekQuery, List.of(appointment.appointmentType().toString(), startStr, endStr));
+            ResultSet rs = dbManager.runQuery(weekQuery, List.of(slot.appointmentType().toString(), startStr, endStr));
             if (rs.next() && rs.getInt("cnt") > 0) {
-                System.out.println("Skipping appointment due to existing appointment in window: " + appointment.start());
+                System.out.println("Skipping slot due to existing appointment in window: " + slot.start());
                 return false;
             }
 
             // Check 2: Verify no time overlaps with any existing appointments
             //TODO: Abstract this to the super class
-            String appointmentStartStr = appointment.start().format(fmt);
-            String appointmentEndStr = appointment.end().format(fmt);
+            String slotStartStr = slot.start().format(fmt);
+            String slotEndStr = slot.end().format(fmt);
 
             String overlapQuery = """
                 SELECT COUNT(*) AS cnt
@@ -60,13 +60,13 @@ public class TypeWeeksBasedProtocol extends SignupProtocol {
             """;
 
             ResultSet overlapRs = dbManager.runQuery(overlapQuery, 
-                List.of(appointment.appointmentType().toString(), 
-                       appointmentEndStr, appointmentStartStr,
-                       appointmentStartStr, appointmentEndStr,
-                       appointmentStartStr, appointmentEndStr));
+                List.of(slot.appointmentType().toString(), 
+                       slotEndStr, slotStartStr,
+                       slotStartStr, slotEndStr,
+                       slotStartStr, slotEndStr));
 
             if (overlapRs.next() && overlapRs.getInt("cnt") > 0) {
-                System.out.println("Skipping appointment due to time overlap with existing appointment: " + appointment.start());
+                System.out.println("Skipping slot due to time overlap with existing appointment: " + slot.start());
                 return false;
             }
 
