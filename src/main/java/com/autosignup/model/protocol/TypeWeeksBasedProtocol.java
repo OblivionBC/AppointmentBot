@@ -24,7 +24,7 @@ public class TypeWeeksBasedProtocol extends SignupProtocol {
             // Check 1: Verify no appointments exist in the week window
             LocalDate startOfWeek = slot.start().toLocalDate()
                     .with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
-            LocalDate endOfWeek = startOfWeek.plusDays(6L * windowWeeks);
+            LocalDate endOfWeek = startOfWeek.plusDays(7L * windowWeeks - 1);
 
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String startStr = startOfWeek.atStartOfDay().format(fmt);

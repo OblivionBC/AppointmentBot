@@ -23,7 +23,7 @@ public class TestDBManager {
         File dbFile = new File(DB_PATH);
         if (dbFile.exists()) dbFile.delete();
 
-        botDBManager = new BotDBManager();
+        botDBManager = new BotDBManager("jdbc:sqlite:" + DB_PATH);
     }
 
     @After

@@ -26,6 +26,14 @@ public class BotDBManager {
     @Getter
     private Connection connection;
 
+    public BotDBManager() {
+    }
+
+    public BotDBManager(String dbUrl) {
+        this.DB_URL = dbUrl;
+        initializeDatabase();
+    }
+
     @PostConstruct
     private void initializeDatabase() {
         try {
@@ -75,12 +83,12 @@ public class BotDBManager {
     public boolean recordSignup(Signup signup) {
         Appointment appointment = signup.Appointment();
 
-        String sql = "INSERT INTO appointments (site_name, appointment_start_timestamp, appointment_end_timestamp, type) VALUES (?, datetime(?), ?)";
+        String sql = "INSERT INTO appointments (site_name, appointment_start_timestamp, appointment_end_timestamp, appointment_type) VALUES (?, datetime(?), datetime(?), ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             String formattedStartTimestamp = (appointment.start().format(DateTimeFormatter
                     .ofPattern("yyyy-MM-dd HH:mm:ss")));
-            String formattedEndTimestamp = (appointment.start().format(DateTimeFormatter
+            String formattedEndTimestamp = (appointment.end().format(DateTimeFormatter
                     .ofPattern("yyyy-MM-dd HH:mm:ss")));
 
             stmt.setString(1, signup.URL());
