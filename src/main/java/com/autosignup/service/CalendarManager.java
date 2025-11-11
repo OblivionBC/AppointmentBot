@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -49,12 +50,16 @@ public class CalendarManager {
     }
 
     public Event createCalendarEvent(Appointment appointment) {
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        String startStr = appointment.start().format(formatter);
+        String endStr = appointment.end().format(formatter);
+        
         EventDateTime start = new EventDateTime()
-                .setDateTime(new com.google.api.client.util.DateTime(String.valueOf(appointment.start())))
+                .setDateTime(new com.google.api.client.util.DateTime(startStr))
                 .setTimeZone(timezone);
 
         EventDateTime end = new EventDateTime()
-                .setDateTime(new com.google.api.client.util.DateTime(String.valueOf(appointment.end())))
+                .setDateTime(new com.google.api.client.util.DateTime(endStr))
                 .setTimeZone(timezone);
 
         Event event = new Event()

@@ -46,7 +46,8 @@ public class TestTypeWeeksProtocol {
             start,
             end,
             available,
-            type
+            type,
+            "http://test.com" // sourceUrl not needed for protocol tests
         );
     }
 

@@ -2,7 +2,7 @@ package com.autosignup.service;
 
 import com.autosignup.model.config.AppConfig;
 import com.autosignup.model.config.NavigatorConfig;
-import com.autosignup.model.config.SiteConfig;
+import com.autosignup.model.config.SignupUserConfig;
 import com.autosignup.model.config.SlotConfig;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -45,46 +45,47 @@ public class ConfigLoaderService {
                 Map<String, Object> navigatorData = entry.getValue();
                 
                 @SuppressWarnings("unchecked")
-                List<Map<String, Object>> sitesData = 
-                    (List<Map<String, Object>>) navigatorData.get("sites");
+                List<Map<String, Object>> slotsData = 
+                    (List<Map<String, Object>>) navigatorData.get("slots");
                 
-                List<SiteConfig> sites = new ArrayList<>();
+                List<SlotConfig> slots = new ArrayList<>();
                 
-                if (sitesData != null) {
-                    for (Map<String, Object> siteData : sitesData) {
-                        String name = (String) siteData.get("name");
-                        String url = (String) siteData.get("url");
-                        int priority = (int) siteData.get("priority");
+                if (slotsData != null) {
+                    for (Map<String, Object> slotData : slotsData) {
+                        String day = (String) slotData.get("day");
+                        String start = (String) slotData.get("start");
+                        String end = (String) slotData.get("end");
                         
-                        @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> slotsData = 
-                            (List<Map<String, Object>>) siteData.get("slots");
-                        
-                        List<SlotConfig> slots = new ArrayList<>();
-                        
-                        if (slotsData != null) {
-                            for (Map<String, Object> slotData : slotsData) {
-                                String day = (String) slotData.get("day");
-                                String start = (String) slotData.get("start");
-                                String end = (String) slotData.get("end");
-                                
-                                slots.add(new SlotConfig(day, start, end));
-                            }
-                        }
-                        
-                        sites.add(new SiteConfig(name, url, priority, slots));
+                        slots.add(new SlotConfig(day, start, end));
                     }
                 }
                 
-                navigators.put(navigatorName, new NavigatorConfig(sites));
+                navigators.put(navigatorName, new NavigatorConfig(slots));
             }
             
-            appConfig = new AppConfig(checkInterval, navigators);
+            SignupUserConfig signupUser = null;
+            @SuppressWarnings("unchecked")
+            Map<String, Object> signupUserData = (Map<String, Object>) data.get("signup_user");
+            
+            if (signupUserData != null) {
+                String firstName = (String) signupUserData.get("first_name");
+                String lastName = (String) signupUserData.get("last_name");
+                String email = (String) signupUserData.get("email");
+                String phone = (String) signupUserData.get("phone");
+                String studentNumber = (String) signupUserData.get("student_number");
+                
+                signupUser = new SignupUserConfig(firstName, lastName, email, phone, studentNumber);
+                logger.info("Loaded signup user config: {}", signupUser);
+            } else {
+                logger.warn("No signup_user configuration found in config.yaml");
+            }
+            
+            appConfig = new AppConfig(checkInterval, navigators, signupUser);
             
             logger.info("Successfully loaded config with {} navigators", navigators.size());
             for (Map.Entry<String, NavigatorConfig> entry : navigators.entrySet()) {
-                logger.info("Navigator '{}': {} sites configured", 
-                    entry.getKey(), entry.getValue().sites().size());
+                logger.info("Navigator '{}': {} slots configured", 
+                    entry.getKey(), entry.getValue().slots().size());
             }
             
         } catch (Exception e) {
@@ -106,5 +107,14 @@ public class ConfigLoaderService {
         }
         
         return config;
+    }
+    
+    public SignupUserConfig getSignupUserConfig() {
+        if (appConfig == null) {
+            logger.warn("Config not loaded");
+            return null;
+        }
+        
+        return appConfig.signupUser();
     }
 }

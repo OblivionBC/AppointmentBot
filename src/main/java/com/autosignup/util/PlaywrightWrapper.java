@@ -179,6 +179,73 @@ public class PlaywrightWrapper {
         }
     }
 
+
+    public void clickElement(ElementHandle element) {
+        try {
+            logger.debug("Clicking element");
+            element.click();
+            page.waitForTimeout(1000); // Wait for any animations
+            logger.debug("Element clicked successfully");
+        } catch (Exception e) {
+            logger.error("Failed to click element: {}", e.getMessage());
+            throw new RuntimeException("Element click failed", e);
+        }
+    }
+
+    public void fillFormField(String selector, String value) {
+        try {
+            logger.debug("Filling form field: {} with value: {}", selector, value);
+            page.waitForSelector(selector, new Page.WaitForSelectorOptions().setTimeout(10000));
+            page.fill(selector, value);
+            logger.debug("Form field filled successfully");
+        } catch (Exception e) {
+            logger.error("Failed to fill form field {}: {}", selector, e.getMessage());
+            throw new RuntimeException("Form field fill failed: " + selector, e);
+        }
+    }
+
+    public boolean waitForModal(String selector, int timeoutMs) {
+        try {
+            logger.debug("Waiting for modal/element: {}", selector);
+            page.waitForSelector(selector, new Page.WaitForSelectorOptions().setTimeout(timeoutMs));
+            logger.debug("Modal/element appeared: {}", selector);
+            return true;
+        } catch (Exception e) {
+            logger.warn("Modal/element did not appear within {}ms: {}", timeoutMs, selector);
+            return false;
+        }
+    }
+
+    public boolean isElementVisible(String selector) {
+        try {
+            logger.debug("Checking visibility of element: {}", selector);
+            ElementHandle element = page.querySelector(selector);
+            if (element == null) {
+                logger.debug("Element not found: {}", selector);
+                return false;
+            }
+            boolean visible = element.isVisible();
+            logger.debug("Element {} is visible: {}", selector, visible);
+            return visible;
+        } catch (Exception e) {
+            logger.debug("Error checking element visibility: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public void clickSelector(String selector) {
+        try {
+            logger.debug("Clicking selector: {}", selector);
+            page.waitForSelector(selector, new Page.WaitForSelectorOptions().setTimeout(10000));
+            page.click(selector);
+            page.waitForTimeout(1000); // Wait for any animations
+            logger.debug("Selector clicked successfully: {}", selector);
+        } catch (Exception e) {
+            logger.error("Failed to click selector {}: {}", selector, e.getMessage());
+            throw new RuntimeException("Selector click failed: " + selector, e);
+        }
+    }
+
     public void close() {
         try {
             if (page != null) {
