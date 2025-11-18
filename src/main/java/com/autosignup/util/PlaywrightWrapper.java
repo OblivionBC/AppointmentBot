@@ -146,8 +146,8 @@ public class PlaywrightWrapper {
 
     private void sleepWithBackoff(int attempt) {
         try {
-            long delay = (long) Math.pow(2, attempt) * 1000; // Exponential backoff
-            Thread.sleep(Math.min(delay, 10000)); // Max 10 seconds
+            long delay = (long) Math.pow(2, attempt) * 1000;
+            Thread.sleep(Math.min(delay, 10000));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -184,7 +184,7 @@ public class PlaywrightWrapper {
         try {
             logger.debug("Clicking element");
             element.click();
-            page.waitForTimeout(1000); // Wait for any animations
+            page.waitForTimeout(1000);
             logger.debug("Element clicked successfully");
         } catch (Exception e) {
             logger.error("Failed to click element: {}", e.getMessage());
@@ -238,7 +238,7 @@ public class PlaywrightWrapper {
             logger.debug("Clicking selector: {}", selector);
             page.waitForSelector(selector, new Page.WaitForSelectorOptions().setTimeout(10000));
             page.click(selector);
-            page.waitForTimeout(1000); // Wait for any animations
+            page.waitForTimeout(1000);
             logger.debug("Selector clicked successfully: {}", selector);
         } catch (Exception e) {
             logger.error("Failed to click selector {}: {}", selector, e.getMessage());

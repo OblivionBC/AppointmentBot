@@ -72,9 +72,8 @@ public class ConfigLoaderService {
                 String lastName = (String) signupUserData.get("last_name");
                 String email = (String) signupUserData.get("email");
                 String phone = (String) signupUserData.get("phone");
-                String studentNumber = (String) signupUserData.get("student_number");
                 
-                signupUser = new SignupUserConfig(firstName, lastName, email, phone, studentNumber);
+                signupUser = new SignupUserConfig(firstName, lastName, email, phone);
                 logger.info("Loaded signup user config: {}", signupUser);
             } else {
                 logger.warn("No signup_user configuration found in config.yaml");
