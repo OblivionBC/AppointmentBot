@@ -2,6 +2,7 @@ package com.autosignup.service;
 
 import com.autosignup.model.Appointment;
 import com.autosignup.navigators.WebsiteNavigator;
+import com.google.api.services.calendar.model.Event;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,14 +24,15 @@ public class OrchestratorService {
         for (WebsiteNavigator nav : navigators) {
             String navigatorName = nav.getClass().getSimpleName();
             logger.info("Running navigator: {}", navigatorName);
+            nav.setEmailService(emailService);
             List<Appointment> appointments = nav.runAll();
             if (appointments.isEmpty()) {
                 logger.info("Navigator {} returned no appointments (may be disabled or no matches found)", navigatorName);
             } else {
                 logger.info("Navigator {} found {} appointment(s)", navigatorName, appointments.size());
                 appointments.forEach(app -> {
-                    calendarManager.createCalendarEvent(app);
-                    calendarManager.sendEmailNotification(app);
+                    Event e = calendarManager.createCalendarEvent(app);
+                    emailService.sendEmailWithCalendarEvent(e);
                 });
             }
         }

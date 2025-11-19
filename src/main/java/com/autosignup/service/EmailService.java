@@ -68,16 +68,20 @@ public class EmailService {
         }
     }
 
-    private void sendEmail(String body) {
+    private void sendEmail(String subject, String body) {
+        if (session == null) {
+            logger.warn("Email session not initialized, cannot send email");
+            return;
+        }
         try {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(smtpFromEmail));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(smtpToEmail));
-            message.setSubject("Appointment Scheduled with AutosignupBot");
+            message.setSubject(subject);
             message.setContent(body, "text/html; charset=utf-8");
 
             Transport.send(message);
-            logger.info("Email sent successfully: {}", "Appointment Scheduled with AutosignupBot");
+            logger.info("Email sent successfully: {}", subject);
 
         } catch (Exception e) {
             logger.error("Failed to send email: {}", e.getMessage());
@@ -87,7 +91,7 @@ public class EmailService {
     public void sendEmailWithCalendarEvent(Event event) {
         try {
             String htmlBody = buildEmailFromTemplate(event);
-            sendEmail(htmlBody);
+            sendEmail("Appointment Scheduled with AutosignupBot", htmlBody);
             logger.info("Confirmation email sent with calendar link");
         } catch (Exception gcalException) {
             logger.warn("Could not use Google Calendar API: {}", gcalException.getMessage());
@@ -95,9 +99,26 @@ public class EmailService {
         }
     }
     
+    public void sendErrorEmail(String navigatorName, String appointmentDetails, String errorMessage) {
+        String htmlBody = String.format(
+                "<html><body style='font-family: Arial, sans-serif; padding: 20px;'>" +
+                "<h2 style='color: #dc3545;'>Signup Error</h2>" +
+                "<p>The autosignup bot encountered an error while attempting to sign up for an appointment.</p>" +
+                "<p><strong>Navigator:</strong> %s</p>" +
+                "<p><strong>Appointment:</strong> %s</p>" +
+                "<p><strong>Error:</strong> %s</p>" +
+                "<p style='margin-top: 20px; color: #666; font-size: 12px;'>Please check the bot logs for more details.</p>" +
+                "</body></html>",
+                navigatorName != null ? navigatorName : "Unknown",
+                appointmentDetails != null ? appointmentDetails : "Unknown appointment",
+                errorMessage != null ? errorMessage : "Unknown error"
+        );
+        sendEmail("AutosignupBot Error - Signup Failed", htmlBody);
+        logger.info("Error notification email sent for navigator: {}", navigatorName);
+    }
+    
     private String buildEmailFromTemplate(Event event) {
-        try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("email-template.html");
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("email-template.html")) {
             if (inputStream == null) {
                 logger.warn("Email template not found, using fallback");
                 return buildFallbackEmail(event);
@@ -114,15 +135,13 @@ public class EmailService {
             String eventStart = formatEventTime(event.getStart());
             
             String location = event.getLocation() != null ? event.getLocation() : "TBD";
-            
-            String htmlBody = template
+
+            return template
                     .replace("{{EVENT_SUMMARY}}", eventSummary)
                     .replace("{{EVENT_START}}", eventStart)
                     .replace("{{EVENT_LOCATION}}", location)
                     .replace("{{EVENT_ID}}", eventId)
                     .replace("{{CALENDAR_LINK}}", calendarLink);
-            
-            return htmlBody;
             
         } catch (Exception e) {
             logger.error("Error building email from template: {}", e.getMessage());

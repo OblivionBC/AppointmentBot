@@ -1,10 +1,7 @@
 package com.autosignup.core;
 
 import com.autosignup.model.Appointment;
-import com.autosignup.model.config.AppConfig;
-import com.autosignup.model.config.NavigatorConfig;
-import com.autosignup.model.config.SiteConfig;
-import com.autosignup.model.config.SlotConfig;
+import com.autosignup.model.config.*;
 import com.autosignup.model.protocol.ProtocolFactory;
 import com.autosignup.navigators.VarsityChiroNavigator;
 import com.autosignup.navigators.VarsityMassageNavigator;
@@ -51,10 +48,10 @@ public class TestWebsiteNavigator {
         configLoader = new TestConfigLoaderService();
         configLoader.loadConfig();
         
-        massageNavigator = new VarsityMassageNavigator(protocolFactory, playwright, configLoader);
+        massageNavigator = new VarsityMassageNavigator(protocolFactory, playwright, configLoader, botDBManager);
         massageNavigator.loadConfig();
         
-        chiroNavigator = new VarsityChiroNavigator(protocolFactory, playwright, configLoader);
+        chiroNavigator = new VarsityChiroNavigator(protocolFactory, playwright, configLoader, botDBManager);
         chiroNavigator.loadConfig();
         
         logger.info("Test environment setup complete");
@@ -83,9 +80,8 @@ public class TestWebsiteNavigator {
         logger.info("Testing VarsityMassageNavigator initialization");
         
         assertNotNull("Massage navigator should be initialized", massageNavigator);
-        
-        assertTrue("Massage navigator should have at least 1 website configured", 
-            massageNavigator.getWebsites().size() >= 1);
+
+        assertFalse("Massage navigator should have at least 1 website configured", massageNavigator.getWebsites().isEmpty());
         
         logger.info("VarsityMassageNavigator initialized with {} sites", massageNavigator.getWebsites().size());
         
@@ -99,9 +95,8 @@ public class TestWebsiteNavigator {
         logger.info("Testing VarsityChiroNavigator initialization");
         
         assertNotNull("Chiro navigator should be initialized", chiroNavigator);
-        
-        assertTrue("Chiro navigator should have at least 1 website configured", 
-            chiroNavigator.getWebsites().size() >= 1);
+
+        assertFalse("Chiro navigator should have at least 1 website configured", chiroNavigator.getWebsites().isEmpty());
         
         logger.info("VarsityChiroNavigator initialized with {} sites", chiroNavigator.getWebsites().size());
         
@@ -143,8 +138,7 @@ public class TestWebsiteNavigator {
         List<Appointment> appointments = chiroNavigator.navigate();
         
         logger.info("Chiro Navigator E2E Test Results:");
-        logger.info("Total appointments found: {}", appointments.size());
-        
+
         assertNotNull("Navigate should return a list (not null)", appointments);
         assertEquals("Chiro navigator should return empty list until implemented", 0, appointments.size());
         
@@ -181,46 +175,30 @@ public class TestWebsiteNavigator {
                     Map<String, Object> navigatorData = entry.getValue();
                     
                     @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> sitesData = 
-                        (List<Map<String, Object>>) navigatorData.get("sites");
+                    List<Map<String, Object>> slotsData = 
+                        (List<Map<String, Object>>) navigatorData.get("slots");
                     
-                    List<SiteConfig> sites = new ArrayList<>();
+                    List<SlotConfig> slots = new ArrayList<>();
                     
-                    if (sitesData != null) {
-                        for (Map<String, Object> siteData : sitesData) {
-                            String name = (String) siteData.get("name");
-                            String url = (String) siteData.get("url");
-                            int priority = (int) siteData.get("priority");
+                    if (slotsData != null) {
+                        for (Map<String, Object> slotData : slotsData) {
+                            String day = (String) slotData.get("day");
+                            String start = (String) slotData.get("start");
+                            String end = (String) slotData.get("end");
                             
-                            @SuppressWarnings("unchecked")
-                            List<Map<String, Object>> slotsData = 
-                                (List<Map<String, Object>>) siteData.get("slots");
-                            
-                            List<SlotConfig> slots = new ArrayList<>();
-                            
-                            if (slotsData != null) {
-                                for (Map<String, Object> slotData : slotsData) {
-                                    String day = (String) slotData.get("day");
-                                    String start = (String) slotData.get("start");
-                                    String end = (String) slotData.get("end");
-                                    
-                                    slots.add(new SlotConfig(day, start, end));
-                                }
-                            }
-                            
-                            sites.add(new SiteConfig(name, url, priority, slots));
+                            slots.add(new SlotConfig(day, start, end));
                         }
                     }
                     
-                    navigators.put(navigatorName, new NavigatorConfig(sites));
+                    navigators.put(navigatorName, new NavigatorConfig(slots));
                 }
                 
-                appConfig = new AppConfig(checkInterval, navigators);
+                appConfig = new AppConfig(checkInterval, navigators, new SignupUserConfig("test", "user", "test@gmail.com", "77777"));
                 
                 logger.info("Successfully loaded test config with {} navigators", navigators.size());
                 for (Map.Entry<String, NavigatorConfig> entry : navigators.entrySet()) {
-                    logger.info("Test Navigator '{}': {} sites configured", 
-                        entry.getKey(), entry.getValue().sites().size());
+                    logger.info("Test Navigator '{}': {} slots configured", 
+                        entry.getKey(), entry.getValue().slots().size());
                 }
                 
             } catch (Exception e) {
