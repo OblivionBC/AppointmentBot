@@ -34,8 +34,8 @@ import java.util.List;
 
 @Component
 public class CalendarManager {
-    @Value("${credentials.path}")
     private static final Logger logger = LoggerFactory.getLogger(CalendarManager.class);
+    @Value("${credentials.path}")
     private static final String CREDENTIALS_FILE_PATH = "src/main/resources/credentials.json";
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
