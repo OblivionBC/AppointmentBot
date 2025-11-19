@@ -1,14 +1,14 @@
 # Appointment Signup Bot
-A bot to sign up for certain appointments.
-- Will use Playwright for site navigation/manipulation.
-- Use SQLite to store data from the appointments.
+A bot to sign up for appointments at given times, following defined signup protocols.
+- Uses Playwright for site navigation/manipulation.
+- Uses SQLite to store data from the appointments.
 - Google SMTP for realtime email notifications.
 - Google Calendar API for creation and invitations to meetings.
-- YAML to configure the times and days for appointments and websites.
+- YAML to configure availablity for appointments and websites.
 - Containerized in Docker.
 
 # Flow
-The application runs on a schedule (default every 5 minutes) and performs the following steps:
+The application runs on a schedule (default every 5 minutes, but configurable) and performs the following steps:
 1. Navigates to each configured website and locates available appointments.
 2. Filters appointments based on configured days/times and policy (e.g., 1/week).
 3. Attempts to sign up for the highest-priority matching appointment.
